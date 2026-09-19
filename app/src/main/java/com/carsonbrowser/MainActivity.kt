@@ -2,6 +2,8 @@ package com.carsonbrowser
 
 import android.app.Activity
 import android.os.Bundle
+import android.view.View
+import android.view.WindowInsets
 import android.webkit.WebView
 import android.webkit.WebViewClient
 
@@ -14,11 +16,24 @@ class MainActivity : Activity() {
         webView = WebView(this).apply {
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
+            settings.useWideViewPort = true
+            settings.loadWithOverviewMode = true
             webViewClient = WebViewClient()
-            loadUrl("https://www.google.com")
+        }
+
+        webView.setOnApplyWindowInsetsListener { view, insets ->
+            val systemBars = insets.getInsets(WindowInsets.Type.systemBars())
+            view.setPadding(
+                systemBars.left,
+                systemBars.top,
+                systemBars.right,
+                systemBars.bottom
+            )
+            insets
         }
 
         setContentView(webView)
+        webView.loadUrl("https://duckduckgo.com/")
     }
 
     override fun onBackPressed() {
