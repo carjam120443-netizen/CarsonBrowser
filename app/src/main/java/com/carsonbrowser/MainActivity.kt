@@ -17,6 +17,9 @@ import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Switch
+import android.widget.ScrollView
+import android.content.Context
 import android.view.inputmethod.EditorInfo
 
 class MainActivity : Activity() {
@@ -30,6 +33,8 @@ class MainActivity : Activity() {
 
     private val homeUrl = "https://duckduckgo.com/"
     private val searchUrl = "https://duckduckgo.com/?q="
+    private val preferences by lazy { getSharedPreferences("browser_settings", Context.MODE_PRIVATE) }
+    private val desktopUserAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/140.0 Safari/537.36"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -100,7 +105,9 @@ class MainActivity : Activity() {
         quickRow.addView(browserLabel, LinearLayout.LayoutParams(0, dp(28), 1f))
 
         val newTabButton = toolbarButton("+", "New tab")
+        val settingsButton = toolbarButton("⚙", "Browser settings")
         quickRow.addView(newTabButton)
+        quickRow.addView(settingsButton)
         toolbar.addView(quickRow)
 
         webContainer = FrameLayout(this)
@@ -143,6 +150,10 @@ class MainActivity : Activity() {
             createTab(homeUrl)
         }
 
+        settingsButton.setOnClickListener {
+            showSettings()
+        }
+
         addressBar.setOnEditorActionListener { _, _, _ ->
             navigateFromAddressBar()
             true
@@ -153,7 +164,8 @@ class MainActivity : Activity() {
 
     private fun createTab(url: String) {
         val webView = WebView(this).apply {
-            settings.javaScriptEnabled = true
+            settings.javaScriptEnabled = preferences.getBoolean("javascript", true)
+            settings.userAgentString = if (preferences.getBoolean("desktop_mode", false)) desktopUserAgent else null
             settings.domStorageEnabled = true
             settings.useWideViewPort = true
             settings.loadWithOverviewMode = true
@@ -225,6 +237,73 @@ class MainActivity : Activity() {
                 }
             }
             .setNegativeButton("Close", null)
+            .show()
+    }
+
+    private fun showSettings() {
+        val content = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(20), dp(8), dp(20), dp(8))
+        }
+
+        val javascriptSwitch = Switch(this).apply {
+            text = "JavaScript"
+            isChecked = preferences.getBoolean("javascript", true)
+        }
+
+        val desktopSwitch = Switch(this).apply {
+            text = "Desktop site"
+            isChecked = preferences.getBoolean("desktop_mode", false)
+        }
+
+        val searchInfo = TextView(this).apply {
+            text = "Default search engine: DuckDuckGo"
+            textSize = 14f
+            alpha = 0.75f
+            setPadding(0, dp(12), 0, dp(12))
+        }
+
+        val clearDataButton = Button(this).apply {
+            text = "Clear browsing data"
+            setOnClickListener {
+                tabs.forEach { it.clearHistory(); it.clearCache(true) }
+                android.widget.Toast.makeText(this@MainActivity, "Browsing data cleared", android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        val resetZoomButton = Button(this).apply {
+            text = "Reset page zoom"
+            setOnClickListener {
+                currentWebView()?.settings?.textZoom = 100
+                android.widget.Toast.makeText(this@MainActivity, "Page zoom reset", android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        content.addView(javascriptSwitch)
+        content.addView(desktopSwitch)
+        content.addView(searchInfo)
+        content.addView(clearDataButton)
+        content.addView(resetZoomButton)
+
+        javascriptSwitch.setOnCheckedChangeListener { _, enabled ->
+            preferences.edit().putBoolean("javascript", enabled).apply()
+            tabs.forEach { it.settings.javaScriptEnabled = enabled }
+        }
+
+        desktopSwitch.setOnCheckedChangeListener { _, enabled ->
+            preferences.edit().putBoolean("desktop_mode", enabled).apply()
+            tabs.forEach { webView ->
+                webView.settings.userAgentString = if (enabled) desktopUserAgent else null
+                webView.reload()
+            }
+        }
+
+        val scrollView = ScrollView(this).apply { addView(content) }
+
+        android.app.AlertDialog.Builder(this)
+            .setTitle("CarsonBrowser Settings")
+            .setView(scrollView)
+            .setPositiveButton("Done", null)
             .show()
     }
 
