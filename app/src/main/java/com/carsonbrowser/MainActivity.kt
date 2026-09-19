@@ -4,6 +4,7 @@ import android.app.Activity
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.text.InputType
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -57,7 +58,7 @@ class MainActivity : Activity() {
 
         addressBar = EditText(this).apply {
             hint = "Search or enter address"
-            singleLine = true
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
             textSize = 15f
             imeOptions = EditorInfo.IME_ACTION_GO
             setPadding(dp(14), 0, dp(14), 0)
