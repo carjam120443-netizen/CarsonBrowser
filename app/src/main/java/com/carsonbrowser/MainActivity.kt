@@ -168,13 +168,18 @@ class MainActivity : Activity() {
             settings.userAgentString = if (preferences.getBoolean("desktop_mode", false)) desktopUserAgent else null
             settings.domStorageEnabled = true
             settings.useWideViewPort = true
-            settings.loadWithOverviewMode = true
+            settings.loadWithOverviewMode = preferences.getBoolean("fit_screen", true)
+            android.webkit.CookieManager.getInstance().setAcceptCookie(preferences.getBoolean("cookies", true))
             settings.builtInZoomControls = false
             settings.displayZoomControls = false
             settings.setSupportMultipleWindows(false)
+            settings.textZoom = preferences.getInt("text_zoom", 100)
 
             webViewClient = object : WebViewClient() {
                 override fun onPageFinished(view: WebView?, pageUrl: String?) {
+                    if (preferences.getBoolean("remember_zoom", true) && view != null) {
+                        preferences.edit().putInt("text_zoom", view.settings.textZoom).apply()
+                    }
                     if (view == currentWebView()) {
                         addressBar.setText(pageUrl ?: "")
                         addressBar.setSelection(addressBar.text.length)
@@ -256,6 +261,21 @@ class MainActivity : Activity() {
             isChecked = preferences.getBoolean("desktop_mode", false)
         }
 
+        val cookiesSwitch = Switch(this).apply {
+            text = "Allow cookies"
+            isChecked = preferences.getBoolean("cookies", true)
+        }
+
+        val zoomSwitch = Switch(this).apply {
+            text = "Remember page zoom"
+            isChecked = preferences.getBoolean("remember_zoom", true)
+        }
+
+        val overviewSwitch = Switch(this).apply {
+            text = "Fit pages to screen"
+            isChecked = preferences.getBoolean("fit_screen", true)
+        }
+
         val searchInfo = TextView(this).apply {
             text = "Default search engine: DuckDuckGo"
             textSize = 14f
@@ -281,6 +301,9 @@ class MainActivity : Activity() {
 
         content.addView(javascriptSwitch)
         content.addView(desktopSwitch)
+        content.addView(cookiesSwitch)
+        content.addView(zoomSwitch)
+        content.addView(overviewSwitch)
         content.addView(searchInfo)
         content.addView(clearDataButton)
         content.addView(resetZoomButton)
@@ -294,6 +317,28 @@ class MainActivity : Activity() {
             preferences.edit().putBoolean("desktop_mode", enabled).apply()
             tabs.forEach { webView ->
                 webView.settings.userAgentString = if (enabled) desktopUserAgent else null
+                webView.reload()
+            }
+        }
+
+        cookiesSwitch.setOnCheckedChangeListener { _, enabled ->
+            preferences.edit().putBoolean("cookies", enabled).apply()
+            tabs.forEach { webView ->
+                android.webkit.CookieManager.getInstance().setAcceptCookie(enabled)
+                if (!enabled) {
+                    android.webkit.CookieManager.getInstance().removeAllCookies(null)
+                }
+            }
+        }
+
+        zoomSwitch.setOnCheckedChangeListener { _, enabled ->
+            preferences.edit().putBoolean("remember_zoom", enabled).apply()
+        }
+
+        overviewSwitch.setOnCheckedChangeListener { _, enabled ->
+            preferences.edit().putBoolean("fit_screen", enabled).apply()
+            tabs.forEach { webView ->
+                webView.settings.loadWithOverviewMode = enabled
                 webView.reload()
             }
         }
