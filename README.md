@@ -1,7 +1,7 @@
 # CarsonBrowser 🌐
 
 <p align="center">
-  <img src="app/src/main/res/drawable/ic_carsonbrowser.xml" alt="CarsonBrowser icon" width="128">
+  <img src="assets/carsonbrowser-icon.svg" alt="CarsonBrowser icon" width="128">
 </p>
 
 A lightweight, open-source web browser for Android, built as part of the Carson software projects.
