@@ -5,7 +5,9 @@
 
     <application
         android:allowBackup="true"
+        android:icon="@drawable/ic_carsonbrowser"
         android:label="CarsonBrowser"
+        android:roundIcon="@drawable/ic_carsonbrowser"
         android:theme="@style/Theme.CarsonBrowser"
         android:supportsRtl="true">
 
