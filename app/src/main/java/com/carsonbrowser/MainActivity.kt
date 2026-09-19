@@ -29,6 +29,7 @@ class MainActivity : Activity() {
     private var currentTab = 0
 
     private val homeUrl = "https://duckduckgo.com/"
+    private val searchUrl = "https://duckduckgo.com/?q="
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,7 +58,7 @@ class MainActivity : Activity() {
         val homeButton = toolbarButton("⌂", "Home")
 
         addressBar = EditText(this).apply {
-            hint = "Search or enter address"
+            hint = "Search with DuckDuckGo or enter address"
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
             textSize = 15f
             imeOptions = EditorInfo.IME_ACTION_GO
@@ -233,9 +234,9 @@ class MainActivity : Activity() {
 
         val destination = when {
             input.startsWith("https://", true) || input.startsWith("http://", true) -> input
-            input.contains(" ") -> "https://duckduckgo.com/?q=" + android.net.Uri.encode(input)
+            input.contains(" ") -> searchUrl + android.net.Uri.encode(input)
             input.contains(".") -> "https://" + input
-            else -> "https://duckduckgo.com/?q=" + android.net.Uri.encode(input)
+            else -> searchUrl + android.net.Uri.encode(input)
         }
 
         currentWebView()?.loadUrl(destination)
