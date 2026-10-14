@@ -10,6 +10,9 @@ A lightweight, open-source web browser for Android, built as part of the Carson 
 
 CarsonBrowser is currently in the early development stage. The repository is being prepared for the first working Android browser build.
 
+> [!NOTE]
+> **Updates for the Android APK may be slow.** New builds and fixes might take a while to arrive, so please be patient while development continues. 😅
+
 ### Planned features
 
 - 🌐 Web browsing
